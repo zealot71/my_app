@@ -24,6 +24,7 @@ db.on("error", function(err) {
 
 
 // model setting
+// Post model
 var postSchema = mongoose.Schema({
   title: {type:String, required:true},
   body: {type:String, required:true},
@@ -33,6 +34,7 @@ var postSchema = mongoose.Schema({
 
 var Post = mongoose.model('post', postSchema);
 
+// User model
 var userSchema = mongoose.Schema({
   email: {type:String, required:true, unique:true},
   nickname: {type:String, required:true, unique:true},
@@ -172,7 +174,7 @@ app.put('/users/:id', checkUserRegValidation, function(req, res) {
       }
       User.findByIdAndUpdate(req.params.id, req.body.user, function(err,user) {
         if(err) return res.json({success:false, message:err});
-        res.redirect('/users/', req.params.id);
+        res.redirect('/users/'+req.params.id);
       });
     } else {
       req.flash("formData", req.body.user);
@@ -222,7 +224,7 @@ app.put('/posts/:id', function(req, res) {
 app.delete('/posts/:id', function(req, res) {
   Post.findByIdAndRemove(req.params.id, function(err, post) {
     if(err) return res.json ({succes:false, message:err});
-    res.redirect('/posts/'+req.params.id);
+    res.redirect('/posts');
   });
 }); // destory
 
