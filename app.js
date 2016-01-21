@@ -53,11 +53,15 @@ app.use(bodyParser.urlencoded({extended:true}));  // url 데이터를 받기 위
 app.use(methodOverride("_method"));
 
 app.use(flash());
-app.use(session({secret:'MySecret'}));  // 로그인 유지, 암호화할 때 사용하는 비밀 해시키
+app.use(session({
+  secret:'MySecret',
+  resave: false,
+  saveUninitialized: true
+}));  // 로그인 유지, 암호화할 때 사용하는 비밀 해시키
 app.use(passport.initialize());
 app.use(passport.session());
 
-passport.serializeuser(function(user, done) { // session 생성시 어떤 정보를 저장할지 설정 ( DB의 ID )
+passport.serializeUser(function(user, done) { // session 생성시 어떤 정보를 저장할지 설정 ( DB의 ID )
   done(null, user.id);
 });
 
@@ -107,7 +111,7 @@ app.post('/login', function(req, res, next) {
   } else {
     next();
   }
-}, passpord.authenticate('local-login', {
+}, passport.authenticate('local-login', {
   successRedirect:'/posts',
   failureRedirect:'/login',
   failureFlash:true
@@ -128,7 +132,8 @@ app.get('/users/new', function(req, res) {
     passwordError: req.flash('password')[0]
   });
 }); // new
-app.post('users', checkUserRegValidation, function(req, res, next) {
+
+app.post('/users', checkUserRegValidation, function(req, res, next) {
   User.create(req.body.user, function(err, user) {
     if(err) return res.json({success:false, message:err});
     res.redirect('/login');
@@ -156,13 +161,12 @@ app.get('/users/:id/edit', function(req, res) {
   });
 }); // edit
 
-
 app.put('/users/:id', checkUserRegValidation, function(req, res) {
   User.findById(req.params.id, req.body.user, function(err, user) {
     if(err) return res.json({success:false, message:err});
     if(req.body.user.password == user.password) {
       if(req.body.user.newPassword) {
-        req.body.user.password-req.body.user.newPassword;
+        req.body.user.password = req.body.user.newPassword;
       } else {
         delete req.body.user.password;
       }
@@ -216,8 +220,7 @@ app.put('/posts/:id', function(req, res) {
   });
 }); // update
 app.delete('/posts/:id', function(req, res) {
-  req.body.
-  Post.findByidAndRemove(req.params.id, function(err, post) {
+  Post.findByIdAndRemove(req.params.id, function(err, post) {
     if(err) return res.json ({succes:false, message:err});
     res.redirect('/posts/'+req.params.id);
   });
